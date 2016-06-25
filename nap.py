@@ -4,7 +4,7 @@ import sys
 import time
 import os
 
-f = open("/home/sup/Documents/python/Napy/chart.conf")
+f = open("chart.conf")
 
 def get_list(config):
     '''
