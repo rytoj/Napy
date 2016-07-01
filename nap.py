@@ -4,7 +4,8 @@ import sys
 import time
 import os
 
-f = open("chart.conf")
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))) # gets absolute Napy folder location
+f = open(os.path.join(__location__, "chart.conf"))
 
 def get_list(config):
     '''
@@ -47,7 +48,7 @@ def cal_delta_to(hour, minute):
     Returns how many secons left until target time is reached
     '''
     now = datetime.datetime.now()
-    # print("now:",now, "\nnow_slice:", now.timetuple()[0:3]) #DEBUG
+    # print("now:",now, "\nnow_slice:", now.timetuple()[0:3]) #DEBUG now: 2016-07-01 12:19:08.843500  now_slice: (2016, 7, 1)
     target = datetime.datetime(*now.timetuple()[0:3], hour, minute)
     # print("target:", target) #DEBUG
     if target < now:  # if the target is before now, add one day
@@ -55,16 +56,33 @@ def cal_delta_to(hour, minute):
     diff = target - now
     return diff.seconds
 
+def nap_time(h, m, hh, mm ):
+    '''
+    Returns nap time
+    '''
+    nap_starts = datetime.timedelta(hours=h, minutes=m)
+    nap_ends = datetime.timedelta(hours=hh, minutes=mm)
+    nap = nap_ends - nap_starts
+    return nap
+
 def sleep_print(verbose=0):
-    start_to_high = cal_delta_to(**Nap_list[0][2])
+    '''
+    prints informational text to terminal
+    '''
+    start_to_high = cal_delta_to(**Nap_list[0][2]) #pradinis nuo kurio lyginama, cal_delta_to(h,m) kaičiuoja kiek lieko sekundžiu iki to laiko
+    if verbose == 1: print(Nap_list)
+    if verbose == 1: print(Nap_list[0][2])
     for item in Nap_list:
+        naptime = nap_time(item[2]['hour'],item[2]['minute'],item[4]['hour'],item[4]['minute'])
+        if verbose == 1: print(item[0], "from:", item[2], "Until:", item[4])
         sec_left = cal_delta_to(**item[2])
         if verbose == 1:
-            print("{} or {} seconds, or {} minutes".format(str(datetime.timedelta(seconds=cal_delta_to(**item[2]))), cal_delta_to(**item[2]), cal_delta_to(**item[2])/60))
-        if sec_left < start_to_high:
+            print("{} or {} seconds, or {:.2f} minutes".format(str(datetime.timedelta(seconds=cal_delta_to(**item[2]))), cal_delta_to(**item[2]), cal_delta_to(**item[2])/60))
+
+        if sec_left <= start_to_high:
             start_to_high = sec_left # artimiausias miegas
             # return print("Artimiausias Miegas po: {}".format(str(datetime.timedelta(seconds=start_to_high)))) #sustoja ties siuo elementu nes returnina
-            return str(datetime.timedelta(seconds=start_to_high))
+    return str(datetime.timedelta(seconds=start_to_high)), naptime
 
 
 
@@ -74,9 +92,13 @@ def sleep_print(verbose=0):
 Nap_list = get_list(f)
 os.system("clear")
 while True:
-    rez = sleep_print(verbose=0)
-    print("Closest nap after: {}".format(rez))
+    rez, nap = sleep_print(verbose=0)
+    print("Closest nap: {} naptime: {} ".format(rez, nap))
+    # for item in Nap_list: # print nap list
+    #     print(item[0],item[1], item[2], "-", item[4])
     if rez == "0:05:00":
         os.system('notify-send "Napy" "5 minutes left"')
+    if rez == "0:01:00":
+        os.system('"espeak" "One minute left"')
     time.sleep(1)
     os.system("clear")
