@@ -7,6 +7,10 @@ import os
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))) # gets absolute Napy folder location
 f = open(os.path.join(__location__, "chart.conf"))
 
+# Handling command-line arguments
+
+
+
 # color codes
 class bcolors:
     DEFAULT = '\033[37m'
@@ -101,6 +105,8 @@ def nap_time_started(naptime):
     while nap_counter > 0:
         print("Next closest nap: {color}{timeleft}{color_end} next naptime: {} ".format(nap, timeleft=rez, color=bcolors.OKBLUE, color_end=bcolors.ENDC))
         print("Nap ends afer:", datetime.timedelta(seconds=nap_counter))
+        prints_sleep_conf()
+
         nap_counter -= 1
         nap_update()
         clear_screen()
@@ -115,6 +121,15 @@ def nap_update():
     # print(hours, leading_min_zero, minutes,leading_second, seconds, nap.seconds) #DEBUG
     global rez, nap, hours, leading_min_zero, minutes, leading_second, seconds
 
+
+def prints_sleep_conf():
+    for arg in sys.argv:
+        if "-v" in arg:
+            for nap in Nap_list:
+                print("{:^4}: {:^2}:{:^2} - until - Hour: {}:{}".format(nap[0], nap[2]['hour'], nap[2]['minute'], nap[4]['hour'], nap[4]['minute']))
+        else:
+            pass
+
 Nap_list = get_list(f)
 os.system("clear")
 while True:
@@ -125,8 +140,10 @@ while True:
 
     if hours == 0 and minutes < 9 and leading_min_zero == 0:
         print("Closest nap: {color}{timeleft}{color_end} next naptime: {} ".format(nap, timeleft=rez, color=bcolors.WARNING, color_end=bcolors.ENDC))
+        prints_sleep_conf()
     else:
         print("Closest nap: {color}{timeleft}{color_end} next naptime: {} ".format(nap, timeleft=rez, color=bcolors.OKBLUE, color_end=bcolors.ENDC))
+        prints_sleep_conf()
 
 
 
